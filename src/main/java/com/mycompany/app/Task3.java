@@ -67,7 +67,7 @@ public class Task3 {
                 System.out.print(row);
             }
 
-            try (FileWriter fw = new FileWriter("../result/forecast.txt")) {
+            try (FileWriter fw = new FileWriter("result/forecast.txt")) {
                 fw.write(sb.toString());
                 System.out.println("\nТаблица сохранена в result/forecast.txt");
             } catch (IOException e) {
