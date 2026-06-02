@@ -4,36 +4,37 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 
 public class App {
 
     public static void main(String[] args) {
-
         System.setProperty("webdriver.chrome.driver", "/home/feynss/chromedriver/chromedriver");
-
-        WebDriver webDriver = new ChromeDriver();
+        WebDriver driver = new ChromeDriver();
 
         try {
-            System.out.println("-Task №1-");
-            webDriver.get("https://www.calculator.net/password-generator.html");
-
-            WebDriverWait wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
-            WebElement passwordBlock = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                    By.cssSelector("div.verybigtext b"))
-            );
-            System.out.println("Сгенерированный пароль: " + passwordBlock.getText());
-            Task2.run(webDriver);
-            Task3.run(webDriver);
-
-        } catch (Exception e) {
-            System.out.println("Error");
-            System.out.println(e.toString());
+            runTask1(driver);
+            Task2.run(driver);
+            Task3.run(driver);
         } finally {
-            webDriver.quit();
+            driver.quit();
+        }
+    }
+
+    private static void runTask1(WebDriver driver) {
+        System.out.println("Задание №1");
+        try {
+            driver.get("https://www.calculator.net/password-generator.html");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement el = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.verybigtext b"))
+            );
+            System.out.println("Пароль: " + el.getText());
+        } catch (Exception ex) {
+            System.err.println("Ошибка в Task1: " + ex.getMessage());
         }
     }
 }

@@ -4,24 +4,18 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 public class Task2 {
 
-    public static void run(WebDriver webDriver) {
+    public static void run(WebDriver driver) {
+        System.out.println("\nЗадание №2");
         try {
-            webDriver.get("https://api.ipify.org/?format=json");
-            WebElement elem = webDriver.findElement(By.tagName("pre"));
-            String jsonStr = elem.getText();
-
-            JSONParser parser = new JSONParser();
-            JSONObject obj = (JSONObject) parser.parse(jsonStr);
-            String ip = (String) obj.get("ip");
-
-            System.out.println("-Task №2-");
-            System.out.println("IP: " + ip);
-        } catch (Exception e) {
-            System.out.println("Task2 Error: " + e.toString());
+            driver.get("https://api.ipify.org/?format=json");
+            String rawJson = driver.findElement(By.tagName("pre")).getText();
+            JSONObject parsed = (JSONObject) new JSONParser().parse(rawJson);
+            System.out.println("Внешний IP-адрес: " + parsed.get("ip"));
+        } catch (Exception ex) {
+            System.err.println("Ошибка в Task2: " + ex.getMessage());
         }
     }
 }

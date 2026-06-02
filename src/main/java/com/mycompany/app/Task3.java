@@ -5,77 +5,74 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class Task3 {
 
-    public static void run(WebDriver webDriver) {
+    private static final String API_URL =
+            "https://api.open-meteo.com/v1/forecast" +
+            "?latitude=56&longitude=44" +
+            "&hourly=temperature_2m,rain" +
+            "&current=cloud_cover" +
+            "&timezone=Europe%2FMoscow" +
+            "&forecast_days=1" +
+            "&wind_speed_unit=ms";
+
+    public static void run(WebDriver driver) {
+        System.out.println("\nЗадание №3");
         try {
-            String url = "https://api.open-meteo.com/v1/forecast"
-                    + "?latitude=56&longitude=44"
-                    + "&hourly=temperature_2m,rain"
-                    + "&current=cloud_cover"
-                    + "&timezone=Europe%2FMoscow"
-                    + "&forecast_days=1"
-                    + "&wind_speed_unit=ms";
+            driver.get(API_URL);
+            String rawJson = driver.findElement(By.tagName("pre")).getText();
 
-            webDriver.get(url);
-            WebElement elem = webDriver.findElement(By.tagName("pre"));
-            String jsonStr = elem.getText();
+            JSONObject root = (JSONObject) new JSONParser().parse(rawJson);
+            JSONObject hourly = (JSONObject) root.get("hourly");
 
-            JSONParser parser = new JSONParser();
-            JSONObject obj = (JSONObject) parser.parse(jsonStr);
-
-            JSONObject hourly = (JSONObject) obj.get("hourly");
             JSONArray times = (JSONArray) hourly.get("time");
             JSONArray temps = (JSONArray) hourly.get("temperature_2m");
             JSONArray rains = (JSONArray) hourly.get("rain");
 
-            StringBuilder sb = new StringBuilder();
-            String header = String.format("%-5s %-22s %-15s %-15s%n",
-                    "№", "Дата/время", "Температура", "Осадки (мм)");
-            String separator = "-".repeat(60) + "\n";
+            printTable(times, temps, rains);
+            saveToFile(times, temps, rains);
 
-            sb.append(header);
-            sb.append(separator);
-
-            System.out.println("-Task №3-");
-            System.out.print(header);
-            System.out.print(separator);
-
-            for (int i = 0; i < times.size(); i++) {
-                String time = (String) times.get(i);
-                Object tempObj = temps.get(i);
-                Object rainObj = rains.get(i);
-
-                double temp = tempObj instanceof Long
-                        ? ((Long) tempObj).doubleValue()
-                        : (Double) tempObj;
-                double rain = rainObj instanceof Long
-                        ? ((Long) rainObj).doubleValue()
-                        : (Double) rainObj;
-
-                String row = String.format("%-5d %-22s %-15s %-15s%n",
-                        (i + 1), time,
-                        temp + " °C",
-                        rain + " мм");
-
-                sb.append(row);
-                System.out.print(row);
-            }
-
-            try (FileWriter fw = new FileWriter("result/forecast.txt")) {
-                fw.write(sb.toString());
-                System.out.println("\nТаблица сохранена в result/forecast.txt");
-            } catch (IOException e) {
-                System.out.println("Ошибка записи файла: " + e.toString());
-            }
-
-        } catch (Exception e) {
-            System.out.println("Task3 Error: " + e.toString());
+        } catch (Exception ex) {
+            System.err.println("Ошибка в Task3: " + ex.getMessage());
         }
+    }
+
+    private static void printTable(JSONArray times, JSONArray temps, JSONArray rains) {
+        String line = String.format("%-4s | %-20s | %-12s | %-12s", "№", "Дата/время", "Темп.(°C)", "Осадки(мм)");
+        System.out.println(line);
+        System.out.println("-".repeat(line.length()));
+        for (int i = 0; i < times.size(); i++) {
+            System.out.println(formatRow(i, times, temps, rains));
+        }
+    }
+
+    private static void saveToFile(JSONArray times, JSONArray temps, JSONArray rains) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter("result/forecast.txt"))) {
+            pw.printf("%-4s | %-20s | %-12s | %-12s%n", "№", "Дата/время", "Темп.(°C)", "Осадки(мм)");
+            pw.println("-".repeat(56));
+            for (int i = 0; i < times.size(); i++) {
+                pw.println(formatRow(i, times, temps, rains));
+            }
+            System.out.println("Файл сохранён: result/forecast.txt");
+        } catch (IOException ex) {
+            System.err.println("Не удалось сохранить файл: " + ex.getMessage());
+        }
+    }
+
+    private static String formatRow(int i, JSONArray times, JSONArray temps, JSONArray rains) {
+        double temp = toDouble(temps.get(i));
+        double rain = toDouble(rains.get(i));
+        return String.format("%-4d | %-20s | %-12s | %-12s",
+                i + 1, times.get(i), temp + " °C", rain + " мм");
+    }
+
+    private static double toDouble(Object val) {
+        if (val instanceof Long) return ((Long) val).doubleValue();
+        return (Double) val;
     }
 }
