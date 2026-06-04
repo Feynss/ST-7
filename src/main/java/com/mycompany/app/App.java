@@ -14,8 +14,8 @@ public class App {
     public static void main(String[] args) {
         initDriver();
         fetchPassword();
-        IpChecker.execute(browser);
-        WeatherFetcher.execute(browser);
+        Task2.execute(browser);
+        Task3.execute(browser);
         browser.quit();
     }
 
